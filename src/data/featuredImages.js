@@ -3,7 +3,8 @@ export const featuredImages = [
     id: 'jwst-pillars',
     title: 'Pillars of Creation',
     description: 'Newly formed stars emerge from columns of cool interstellar gas and dust.',
-    previewUrl: 'https://stsci-opo.org/STScI-01GGF8H15VZ09MET9HFBRQX4S3.png',
+    // Keep the 152 MiB scientific original behind the archive link, not in the card.
+    previewUrl: '/atlas/pillars-of-creation.webp',
     mediaType: 'image',
     center: 'Space Telescope Science Institute',
     dateCreated: '2022-10-19T00:00:00Z',
@@ -88,7 +89,7 @@ export const featuredImages = [
     id: 'lunar-far-side',
     title: 'The Moon’s Far Side',
     description: 'Cratered terrain on the lunar hemisphere that never faces Earth.',
-    previewUrl: 'https://images-assets.nasa.gov/image/PIA00225/PIA00225~large.jpg',
+    previewUrl: 'https://images-assets.nasa.gov/image/PIA00225/PIA00225~small.jpg',
     mediaType: 'image',
     center: 'Jet Propulsion Laboratory',
     dateCreated: '1992-12-14T00:00:00Z',

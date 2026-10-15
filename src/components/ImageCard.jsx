@@ -16,9 +16,8 @@ export const ImageCard = memo(function ImageCard({ image, onOpen }) {
           <img
             src={cardImageUrl}
             alt=""
-            loading="lazy"
+            loading="eager"
             decoding="async"
-            fetchPriority="low"
             width="800"
             height="600"
             onError={() => setFailedUrl(cardImageUrl)}
