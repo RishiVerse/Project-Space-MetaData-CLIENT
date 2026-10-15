@@ -78,7 +78,7 @@ export default function App() {
           <AtlasSection atlas={atlas} />
           {spaceGearEnabled ? <GearSection showBrowseLink /> : null}
           <ObservationGuides />
-          <FeaturedVideo />
+          {!homepageVideoEnabled ? <FeaturedVideo /> : null}
         </main>
       )}
       <Footer spaceGearEnabled={spaceGearEnabled} />
