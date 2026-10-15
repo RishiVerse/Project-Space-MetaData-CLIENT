@@ -9,35 +9,68 @@ const objectRules = [
   ['Star', ['star', 'stellar', 'sun']],
 ];
 
-const inferObjectType = (image) => {
-  const searchable = [image.title, ...(image.keywords || [])].join(' ').toLowerCase();
+const missionRules = [
+  ['JWST', ['james webb', 'webb', 'jwst']],
+  ['Hubble', ['hubble']],
+  ['Apollo', ['apollo']],
+  ['Juno', ['juno']],
+  ['Cassini', ['cassini']],
+  ['Galileo', ['galileo']],
+];
+
+const normalizeKeywords = (keywords) => (
+  Array.isArray(keywords) ? keywords.filter((keyword) => typeof keyword === 'string') : []
+);
+
+const searchableText = (...values) => values
+  .flat()
+  .filter((value) => typeof value === 'string')
+  .join(' ')
+  .toLowerCase();
+
+const inferObjectType = (image, keywords) => {
+  const searchable = searchableText(image.title, keywords);
   return objectRules.find(([, words]) => words.some((word) => searchable.includes(word)))?.[0]
     || 'Deep Space';
 };
 
-const inferMission = (image) => {
-  const searchable = [image.center, image.title, ...(image.keywords || [])]
-    .join(' ')
-    .toLowerCase();
-  if (searchable.includes('webb') || searchable.includes('jwst')) return 'JWST';
-  if (searchable.includes('hubble')) return 'Hubble';
-  return image.source?.provider || 'NASA';
+const inferMission = (image, keywords, provider) => {
+  const searchable = searchableText(image.center, image.title, keywords, provider);
+  return missionRules.find(([, words]) => words.some((word) => searchable.includes(word)))?.[0]
+    || provider;
 };
 
-const toViewModel = (image) => ({
-  id: image.id,
-  title: image.title || 'Untitled observation',
-  description: image.description || 'No description is available for this observation.',
-  previewUrl: image.previewUrl,
-  mediaType: image.mediaType || 'image',
-  center: image.center || 'Public archive',
-  dateCreated: image.dateCreated,
-  year: image.dateCreated ? new Date(image.dateCreated).getUTCFullYear() : null,
-  keywords: image.keywords || [],
-  source: image.source || { provider: 'NASA', url: '#' },
-  mission: inferMission(image),
-  objectType: inferObjectType(image),
-});
+const toViewModel = (image = {}) => {
+  const keywords = normalizeKeywords(image.keywords);
+  const source = {
+    provider: image.source?.provider || 'NASA',
+    url: image.source?.url || '#',
+  };
+  const parsedDate = image.dateCreated ? new Date(image.dateCreated) : null;
+  const year = parsedDate && !Number.isNaN(parsedDate.getTime())
+    ? parsedDate.getUTCFullYear()
+    : null;
+
+  return {
+    id: String(image.id || image.previewUrl || image.title || 'untitled-observation'),
+    title: image.title || 'Untitled observation',
+    description: image.description || 'No description is available for this observation.',
+    previewUrl: typeof image.previewUrl === 'string' ? image.previewUrl : '',
+    mediaType: image.mediaType || 'image',
+    center: image.center || 'Public archive',
+    dateCreated: image.dateCreated || null,
+    year,
+    keywords,
+    source,
+    mission: inferMission(image, keywords, source.provider),
+    objectType: inferObjectType(image, keywords),
+  };
+};
+
+const positiveNumberOr = (value, fallback) => {
+  const number = Number(value);
+  return Number.isFinite(number) && number >= 0 ? number : fallback;
+};
 
 export class CosmicImageRepository {
   constructor(httpClient) {
@@ -53,9 +86,15 @@ export class CosmicImageRepository {
       signal,
     });
 
+    const items = Array.isArray(response?.items) ? response.items.map(toViewModel) : [];
+
     return {
       ...response,
-      items: (response.items || []).map(toViewModel),
+      query: response?.query || normalizedQuery,
+      page: positiveNumberOr(response?.page, page),
+      pageSize: positiveNumberOr(response?.pageSize, pageSize),
+      totalHits: positiveNumberOr(response?.totalHits, items.length),
+      items,
     };
   }
 

@@ -34,6 +34,31 @@ describe('CosmicImageRepository', () => {
     });
   });
 
+  it('normalizes incomplete records and infers named missions', async () => {
+    const client = {
+      get: vi.fn().mockResolvedValue({
+        items: [{
+          id: 'APOLLO-8',
+          title: 'Earthrise during Apollo 8',
+          dateCreated: 'not-a-date',
+          keywords: 'not-an-array',
+          source: { url: 'https://example.com/apollo-8' },
+        }],
+      }),
+    };
+    const repository = new CosmicImageRepository(client);
+
+    const response = await repository.search({ query: 'apollo' });
+
+    expect(response).toMatchObject({ page: 1, pageSize: 12, totalHits: 1 });
+    expect(response.items[0]).toMatchObject({
+      keywords: [],
+      mission: 'Apollo',
+      source: { provider: 'NASA', url: 'https://example.com/apollo-8' },
+      year: null,
+    });
+  });
+
   it('reports the actuator health state', async () => {
     const client = { get: vi.fn().mockResolvedValue({ status: 'UP' }) };
     const repository = new CosmicImageRepository(client);

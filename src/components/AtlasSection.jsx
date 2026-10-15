@@ -1,11 +1,12 @@
 import { ImageOff, LoaderCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { FilterBar } from './FilterBar';
 import { ImageCard } from './ImageCard';
 import { ImageDetailDialog } from './ImageDetailDialog';
 
 export function AtlasSection({ atlas }) {
   const [selectedImage, setSelectedImage] = useState(null);
+  const closeDialog = useCallback(() => setSelectedImage(null), []);
 
   return (
     <section className="atlas-section" id="atlas" aria-labelledby="atlas-title">
@@ -23,17 +24,15 @@ export function AtlasSection({ atlas }) {
         <FilterBar filters={atlas.filters} onChange={atlas.updateFilter} />
 
         {atlas.error ? (
-          <div className="notice" role="status">
+          <div className="notice" role="alert">
             <ImageOff size={18} />
-            <span>{atlas.error} Curated images remain available while the local API reconnects.</span>
+            <span>{atlas.error}</span>
           </div>
         ) : null}
 
         {atlas.isLoading && !atlas.visibleItems.length ? (
           <div className="loading-state"><LoaderCircle className="spin" /> Searching public archives…</div>
-        ) : null}
-
-        {!atlas.isLoading && !atlas.visibleItems.length ? (
+        ) : !atlas.visibleItems.length ? (
           <div className="empty-state">
             <ImageOff size={24} />
             <h3>No images match these filters.</h3>
@@ -58,7 +57,7 @@ export function AtlasSection({ atlas }) {
           </button>
         </div>
       </div>
-      <ImageDetailDialog image={selectedImage} onClose={() => setSelectedImage(null)} />
+      <ImageDetailDialog image={selectedImage} onClose={closeDialog} />
     </section>
   );
 }

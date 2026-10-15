@@ -1,20 +1,18 @@
-import { Github } from 'lucide-react';
-
-export function Footer() {
+export function Footer({ spaceGearEnabled }) {
   return (
     <>
-      <section className="announcement" id="about" aria-label="Open source announcement">
+      <section className="announcement" aria-label="Project announcement">
         <div className="page-shell announcement-inner">
-          <div>
-            <span>NOW BUILDING IN PUBLIC</span>
-            <p>Open-source space-image metadata explorer</p>
+          <div className="footer-links">
+            <span>KEEP EXPLORING</span>
+            <p>Public imagery, clear metadata, and space knowledge.</p>
           </div>
-          <a href="https://github.com/RishiVerse/Project-Space-MetaData-CLIENT" target="_blank" rel="noreferrer">
-            View on GitHub <Github size={18} />
+          <a href={spaceGearEnabled ? '#gear' : '#atlas'}>
+            {spaceGearEnabled ? 'Explore the gear guide' : 'Explore the image atlas'}
           </a>
         </div>
       </section>
-      <footer className="site-footer">
+      <footer className="site-footer" id="about">
         <div className="page-shell footer-grid">
           <div className="footer-brand">
             <img
@@ -22,19 +20,13 @@ export function Footer() {
               src="/brand/cosmic-research-logo.png"
               alt="Cosmic Research"
             />
-            <p>Public imagery, clear metadata, and source-first exploration.</p>
+            <p>Public imagery, clear metadata, observing guides, and source-first exploration.</p>
           </div>
-          <div>
-            <h3>Atlas</h3>
-            <a href="#atlas">Browse images</a>
-            <a href="#atlas">Mission filters</a>
-            <a href="#atlas">Source metadata</a>
-          </div>
-          <div>
-            <h3>Build</h3>
-            <a href="#roadmap">Project roadmap</a>
-            <a href="https://github.com/RishiVerse/Project-Space-MetaData-CLIENT" target="_blank" rel="noreferrer">GitHub</a>
-            <a href="http://localhost:8080/actuator/health" target="_blank" rel="noreferrer">API health</a>
+          <div className="footer-links">
+            <h3>Explore</h3>
+            <a href="#atlas">Image Atlas</a>
+            <a href="#guides">Observation guides</a>
+            {spaceGearEnabled ? <a href="#gear">Space Gear</a> : null}
           </div>
         </div>
         <div className="page-shell footer-bottom">

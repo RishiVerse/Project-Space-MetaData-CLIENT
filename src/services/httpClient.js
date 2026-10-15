@@ -30,19 +30,22 @@ export class FetchHttpClient {
       }
     });
 
-    const timeoutController = new AbortController();
-    const timeoutId = window.setTimeout(
-      () => timeoutController.abort('Request timed out'),
-      this.timeoutMs,
-    );
-    const abortFromParent = () => timeoutController.abort(signal?.reason);
-    signal?.addEventListener('abort', abortFromParent, { once: true });
+    const requestController = new AbortController();
+    let didTimeout = false;
+    const timeoutId = globalThis.setTimeout(() => {
+      didTimeout = true;
+      requestController.abort();
+    }, this.timeoutMs);
+    const abortFromParent = () => requestController.abort(signal?.reason);
+
+    if (signal?.aborted) abortFromParent();
+    else signal?.addEventListener('abort', abortFromParent, { once: true });
 
     try {
       const response = await this.fetchImpl(url, {
         method: 'GET',
         headers: { Accept: 'application/json' },
-        signal: timeoutController.signal,
+        signal: requestController.signal,
       });
       const payload = await response.json().catch(() => null);
 
@@ -56,12 +59,14 @@ export class FetchHttpClient {
       return payload;
     } catch (error) {
       if (error instanceof HttpError) throw error;
-      if (error.name === 'AbortError') {
-        throw new HttpError('The atlas service took too long to respond.');
+      if (requestController.signal.aborted) {
+        throw new HttpError(
+          didTimeout ? 'The atlas service took too long to respond.' : 'The request was cancelled.',
+        );
       }
       throw new HttpError('The atlas service is currently unreachable.');
     } finally {
-      window.clearTimeout(timeoutId);
+      globalThis.clearTimeout(timeoutId);
       signal?.removeEventListener('abort', abortFromParent);
     }
   }
