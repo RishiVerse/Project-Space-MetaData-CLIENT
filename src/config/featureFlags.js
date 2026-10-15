@@ -7,6 +7,7 @@ export const FEATURE_FLAGS = Object.freeze({
   HOMEPAGE_VIDEO_1: 'homwpage_video_1',
   SPACE_GEAR: 'space_gear',
   DEVELOPMENT_MESSAGE: 'development_message',
+  SOCIAL_MEDIA: 'social_media',
   CREATOR_HUB: 'creator_hub',
   BUILD_YOUR_SATELLITE: 'build_your_satellite',
 });
@@ -26,6 +27,7 @@ export const flagsmithOptions = Object.freeze({
     [FEATURE_FLAGS.HOMEPAGE_VIDEO_1]: { enabled: false },
     [FEATURE_FLAGS.SPACE_GEAR]: { enabled: false },
     [FEATURE_FLAGS.DEVELOPMENT_MESSAGE]: { enabled: false },
+    [FEATURE_FLAGS.SOCIAL_MEDIA]: { enabled: false },
     [FEATURE_FLAGS.CREATOR_HUB]: { enabled: false },
     [FEATURE_FLAGS.BUILD_YOUR_SATELLITE]: { enabled: false },
     buy_space_stuff: { enabled: false },

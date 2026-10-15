@@ -24,6 +24,7 @@ export default function App() {
   const homepageVideoEnabled = isFlagEnabled(flags, FEATURE_FLAGS.HOMEPAGE_VIDEO_1);
   const spaceGearEnabled = isFlagEnabled(flags, FEATURE_FLAGS.SPACE_GEAR);
   const developmentMessageEnabled = isFlagEnabled(flags, FEATURE_FLAGS.DEVELOPMENT_MESSAGE);
+  const socialMediaEnabled = isFlagEnabled(flags, FEATURE_FLAGS.SOCIAL_MEDIA);
   const heroBackgroundEnabled = isFlagEnabled(flags, FEATURE_FLAGS.HERO_BACKGROUND_IMAGE);
   const isBuildSatellitePage = creatorHubEnabled && buildSatelliteEnabled && route === '#build-your-satellite';
   const isGearPage = spaceGearEnabled && (route === '#gear' || route.startsWith('#gear-'));
@@ -61,7 +62,11 @@ export default function App() {
   return (
     <div className={developmentMessageEnabled ? 'app has-development-message' : 'app'}>
       {developmentMessageEnabled ? <DevelopmentMessage /> : null}
-      <Header route={route || '#top'} spaceGearEnabled={spaceGearEnabled} />
+      <Header
+        route={route || '#top'}
+        spaceGearEnabled={spaceGearEnabled}
+        socialMediaEnabled={socialMediaEnabled}
+      />
       {isBuildSatellitePage ? (
         <BuildSatellitePage />
       ) : isGearPage ? (
