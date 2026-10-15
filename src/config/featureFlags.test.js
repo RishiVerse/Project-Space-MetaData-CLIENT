@@ -8,6 +8,7 @@ describe('feature flag registry', () => {
       'homwpage_video_1',
       'space_gear',
       'development_message',
+      'social_media',
     ]));
 
     ROLLOUT_FLAG_KEYS.forEach((flagName) => {
