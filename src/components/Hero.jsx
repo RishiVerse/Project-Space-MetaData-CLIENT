@@ -1,60 +1,67 @@
 import { ArrowDown, ArrowRight, Search } from 'lucide-react';
+import { HeroVideo } from './HeroVideo';
 
-const popularSearches = ['Moon', 'Mars', 'Jupiter', 'Nebulae'];
-
-export function Hero({ query, setQuery, onSearch, isLoading }) {
-  const submit = (event) => {
+export function Hero({ atlas, showBackgroundImage, showGearLink, showSearch, showVideo }) {
+  const submitSearch = (event) => {
     event.preventDefault();
-    onSearch(query);
-    document.querySelector('#atlas')?.scrollIntoView({ behavior: 'smooth' });
+    atlas.search(atlas.query);
+    window.location.hash = 'atlas';
   };
 
-  const runPopularSearch = (term) => {
-    setQuery(term.toLowerCase());
-    onSearch(term);
-    document.querySelector('#atlas')?.scrollIntoView({ behavior: 'smooth' });
+  const searchFor = (query) => {
+    atlas.setQuery(query);
+    atlas.search(query);
+    window.location.hash = 'atlas';
   };
 
   return (
-    <section className="hero" id="top" aria-labelledby="hero-title">
+    <section
+      className={showBackgroundImage ? 'hero hero-with-image' : 'hero'}
+      id="top"
+      aria-labelledby="hero-title"
+    >
       <div className="hero-scrim" aria-hidden="true" />
       <div className="hero-content page-shell">
-        <p className="eyebrow">PUBLIC SPACE IMAGE METADATA</p>
-        <h1 id="hero-title">Explore the Universe.<br />Image by Image.</h1>
-        <p className="hero-copy">
-          Search public imagery from NASA and the missions shaping our view of the cosmos.
-          Every image comes with clear metadata, source context, and a path back to the archive.
-        </p>
-
-        <form className="hero-search" role="search" onSubmit={submit}>
-          <Search size={20} aria-hidden="true" />
-          <label className="sr-only" htmlFor="atlas-query">Search the image atlas</label>
-          <input
-            id="atlas-query"
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search Moon, Mars, nebulae…"
-            autoComplete="off"
-          />
-          <label className="sr-only" htmlFor="quick-object">Suggested object</label>
-          <select
-            id="quick-object"
-            value={popularSearches.find((item) => item.toLowerCase() === query.toLowerCase()) || ''}
-            onChange={(event) => setQuery(event.target.value.toLowerCase())}
-          >
-            <option value="">Object</option>
-            {popularSearches.map((item) => <option key={item}>{item}</option>)}
-          </select>
-          <button className="button button-primary" type="submit" disabled={isLoading}>
-            {isLoading ? 'Searching…' : 'Search'} <ArrowRight size={18} />
-          </button>
-        </form>
-
-        <div className="popular-searches" aria-label="Popular searches">
-          <span>Popular:</span>
-          {popularSearches.map((term) => (
-            <button type="button" key={term} onClick={() => runPopularSearch(term)}>{term}</button>
-          ))}
+        <div className={showVideo ? 'hero-layout has-video' : 'hero-layout'}>
+          <div className="hero-copy-column">
+            <p className="eyebrow">PUBLIC SPACE IMAGE METADATA</p>
+            <h1 id="hero-title">Explore the universe with us.</h1>
+            <p className="hero-copy">
+              Search public space archives, understand the metadata behind each image, and learn how to begin observing the night sky yourself.
+            </p>
+            {showSearch ? (
+              <form className="hero-search" role="search" onSubmit={submitSearch}>
+                <Search size={20} aria-hidden="true" />
+                <label className="sr-only" htmlFor="hero-search-input">Search the image atlas</label>
+                <input
+                  id="hero-search-input"
+                  value={atlas.query}
+                  onChange={(event) => atlas.setQuery(event.target.value)}
+                  placeholder="Search Moon, Jupiter, nebulae…"
+                  autoComplete="off"
+                />
+                <button className="button button-primary" type="submit" disabled={atlas.isLoading}>
+                  {atlas.isLoading ? 'Searching…' : 'Search atlas'}
+                </button>
+              </form>
+            ) : null}
+            {showSearch || showGearLink ? (
+              <div className="hero-actions">
+                {showSearch ? (
+                  <div className="popular-searches" aria-label="Popular searches">
+                    <span>Try</span>
+                    <button type="button" onClick={() => searchFor('moon')}>Moon</button>
+                    <button type="button" onClick={() => searchFor('Jupiter')}>Jupiter</button>
+                    <button type="button" onClick={() => searchFor('nebula')}>Nebulae</button>
+                  </div>
+                ) : null}
+                {showGearLink ? (
+                  <a className="hero-gear-link" href="#gear">Discover astronomy gear <ArrowRight size={17} /></a>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+          {showVideo ? <HeroVideo /> : null}
         </div>
       </div>
       <a className="scroll-cue" href="#atlas" aria-label="Scroll to the image atlas">

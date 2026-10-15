@@ -1,5 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { featuredImages } from '../data/featuredImages';
+
+const PAGE_SIZE = 12;
 
 const initialFilters = {
   objectType: 'All objects',
@@ -23,18 +25,29 @@ export const useAtlasSearch = (repository) => {
   const [page, setPage] = useState(1);
   const [totalHits, setTotalHits] = useState(featuredImages.length);
   const [isLoading, setIsLoading] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
   const [error, setError] = useState('');
   const [filters, setFilters] = useState(initialFilters);
   const controllerRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const activeQueryRef = useRef(query);
 
-  const search = async (nextQuery = query, nextPage = 1, append = false) => {
+  const search = useCallback(async (
+    nextQuery = activeQueryRef.current,
+    nextPage = 1,
+    append = false,
+  ) => {
     const normalizedQuery = nextQuery.trim();
+    const requestId = requestIdRef.current + 1;
+    requestIdRef.current = requestId;
+    controllerRef.current?.abort();
+
     if (!normalizedQuery) {
+      setIsLoading(false);
       setError('Enter an object, mission, or place to search.');
       return;
     }
 
-    controllerRef.current?.abort();
     const controller = new AbortController();
     controllerRef.current = controller;
     setIsLoading(true);
@@ -44,22 +57,37 @@ export const useAtlasSearch = (repository) => {
       const response = await repository.search({
         query: normalizedQuery,
         page: nextPage,
-        pageSize: 12,
+        pageSize: PAGE_SIZE,
         signal: controller.signal,
       });
-      setItems((current) => (append ? [...current, ...response.items] : response.items));
+
+      if (controller.signal.aborted || requestId !== requestIdRef.current) return;
+
+      setItems((current) => {
+        if (!append) return response.items;
+        const knownIds = new Set(current.map((item) => item.id));
+        return [...current, ...response.items.filter((item) => !knownIds.has(item.id))];
+      });
       setQuery(normalizedQuery);
       setPage(response.page);
       setTotalHits(response.totalHits);
-      if (!response.items.length && !append) {
-        setError(`No public images matched “${normalizedQuery}”. Try a broader term.`);
-      }
+      setHasMore(response.page * response.pageSize < response.totalHits);
+      activeQueryRef.current = normalizedQuery;
     } catch (searchError) {
-      if (!controller.signal.aborted) setError(searchError.message);
+      if (!controller.signal.aborted && requestId === requestIdRef.current) {
+        setError(searchError.message);
+      }
     } finally {
-      if (!controller.signal.aborted) setIsLoading(false);
+      if (!controller.signal.aborted && requestId === requestIdRef.current) {
+        setIsLoading(false);
+      }
     }
-  };
+  }, [repository]);
+
+  useEffect(() => () => {
+    requestIdRef.current += 1;
+    controllerRef.current?.abort();
+  }, []);
 
   const visibleItems = useMemo(
     () => items.filter((item) => {
@@ -67,7 +95,7 @@ export const useAtlasSearch = (repository) => {
         || item.objectType === filters.objectType;
       const missionMatch = filters.mission === 'All missions'
         || item.mission === filters.mission
-        || item.source.provider.includes(filters.mission);
+        || item.source?.provider?.includes(filters.mission);
       const yearMatch = matchesYear(item.year, filters.year);
       const scaleMatch = filters.scale === 'All scales'
         || (filters.scale === 'Planetary' && ['Moon', 'Planet'].includes(item.objectType))
@@ -77,21 +105,26 @@ export const useAtlasSearch = (repository) => {
     [filters, items],
   );
 
-  const updateFilter = (name, value) => {
+  const updateFilter = useCallback((name, value) => {
     setFilters((current) => ({ ...current, [name]: value }));
-  };
+  }, []);
+
+  const loadMore = useCallback(
+    () => search(activeQueryRef.current, page + 1, true),
+    [page, search],
+  );
 
   return {
     query,
     setQuery,
     search,
-    loadMore: () => search(query, page + 1, true),
+    loadMore,
     visibleItems,
     totalHits,
     isLoading,
     error,
     filters,
     updateFilter,
-    hasMore: items.length < totalHits,
+    hasMore,
   };
 };

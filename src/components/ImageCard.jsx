@@ -1,20 +1,27 @@
 import { ArrowUpRight, CalendarDays, MapPin } from 'lucide-react';
-import { useState } from 'react';
+import { memo, useState } from 'react';
+import { getCardImageUrl } from '../utils/imageUrl';
 
 const formatYear = (year) => year || 'Date unknown';
 
-export function ImageCard({ image, onOpen }) {
-  const [imageFailed, setImageFailed] = useState(false);
+export const ImageCard = memo(function ImageCard({ image, onOpen }) {
+  const [failedUrl, setFailedUrl] = useState('');
+  const cardImageUrl = getCardImageUrl(image.previewUrl);
+  const showImage = cardImageUrl && failedUrl !== cardImageUrl;
 
   return (
     <article className="image-card">
       <button className="image-card-media" type="button" onClick={() => onOpen(image)}>
-        {!imageFailed && image.previewUrl ? (
+        {showImage ? (
           <img
-            src={image.previewUrl}
+            src={cardImageUrl}
             alt=""
             loading="lazy"
-            onError={() => setImageFailed(true)}
+            decoding="async"
+            fetchPriority="low"
+            width="800"
+            height="600"
+            onError={() => setFailedUrl(cardImageUrl)}
           />
         ) : null}
         <span className="mission-badge">{image.mission}</span>
@@ -37,4 +44,4 @@ export function ImageCard({ image, onOpen }) {
       </div>
     </article>
   );
-}
+});

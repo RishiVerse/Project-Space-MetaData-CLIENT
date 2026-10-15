@@ -1,27 +1,28 @@
-import { Menu, X } from 'lucide-react';
+import { X, Menu } from 'lucide-react';
 import { useState } from 'react';
 
-const navItems = [
-  ['#atlas', 'Atlas'],
-  ['#roadmap', 'Projects'],
-  ['#about', 'About'],
+const baseNavigation = [
+  { href: '#top', label: 'Explore' },
+  { href: '#atlas', label: 'Image Atlas' },
+  { href: '#guides', label: 'Guides' },
+  { href: '#about', label: 'About' },
 ];
 
-export function Header({ healthStatus }) {
+export function Header({ route, spaceGearEnabled }) {
   const [isOpen, setIsOpen] = useState(false);
-  const healthLabel = healthStatus === 'online'
-    ? 'API online'
-    : healthStatus === 'offline'
-      ? 'API offline'
-      : 'Checking API';
+  const navigation = spaceGearEnabled
+    ? [...baseNavigation.slice(0, 2), { href: '#gear', label: 'Space Gear' }, ...baseNavigation.slice(2)]
+    : baseNavigation;
 
   return (
     <header className="site-header">
-      <a className="brand" href="#top" aria-label="Cosmic Research — Cosmic Image Atlas home">
+      <a className="brand" href="#top" aria-label="SpaceMetadata home">
         <img
           className="brand-logo"
           src="/brand/cosmic-research-logo.png"
           alt=""
+          width="520"
+          height="250"
         />
       </a>
       <button
@@ -33,14 +34,21 @@ export function Header({ healthStatus }) {
       >
         {isOpen ? <X size={20} /> : <Menu size={20} />}
       </button>
-      <nav className={isOpen ? 'site-nav is-open' : 'site-nav'} aria-label="Main navigation">
-        {navItems.map(([href, label]) => (
-          <a key={href} href={href} onClick={() => setIsOpen(false)}>{label}</a>
-        ))}
-        <span className={`api-status status-${healthStatus}`} title="Backend health check">
-          <span aria-hidden="true" /> {healthLabel}
-        </span>
-        <a className="button button-light button-small" href="#atlas">Explore Atlas</a>
+      <nav className={isOpen ? 'site-nav is-open' : 'site-nav'} aria-label="Primary navigation">
+        {navigation.map(({ href, label }) => {
+          const isActive = route === href || (href === '#gear' && route.startsWith('#gear-'));
+          return (
+            <a
+              className="feature-link"
+              key={label}
+              href={href}
+              aria-current={isActive ? 'page' : undefined}
+              onClick={() => setIsOpen(false)}
+            >
+              <span>{label}</span>
+            </a>
+          );
+        })}
       </nav>
     </header>
   );
